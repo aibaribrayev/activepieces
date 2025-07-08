@@ -311,7 +311,7 @@ const SignUpForm = ({
                     ></Checkbox>
                   </FormControl>
                   <Label htmlFor="newsLetter">
-                    {t(`Receive updates and newsletters from activepieces`)}
+                    {t(`Receive updates and newsletters from lumeno`)}
                   </Label>
                   <FormMessage />
                 </FormItem>

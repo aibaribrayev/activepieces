@@ -38,22 +38,22 @@ export function PlatformAdminContainer({
   const showPlatformAdminDashboard = useShowPlatformAdminDashboard();
   const isLocked = (locked: boolean) => locked || (showPlatformDemo ?? false);
   const items: SidebarItem[] = [
-    {
-      type: 'link',
-      to: '/platform/analytics',
-      label: t('Overview'),
-      icon: <LineChart />,
-      locked: isLocked(!platform.plan.analyticsEnabled),
-      isSubItem: false,
-    },
-    {
-      type: 'link',
-      to: '/platform/projects',
-      label: t('Projects'),
-      icon: <LayoutGrid />,
-      locked: isLocked(!platform.plan.manageProjectsEnabled),
-      isSubItem: false,
-    },
+    // {
+    //   type: 'link',
+    //   to: '/platform/analytics',
+    //   label: t('Overview'),
+    //   icon: <LineChart />,
+    //   locked: isLocked(!platform.plan.analyticsEnabled),
+    //   isSubItem: false,
+    // },
+    // {
+    //   type: 'link',
+    //   to: '/platform/projects',
+    //   label: t('Projects'),
+    //   icon: <LayoutGrid />,
+    //   locked: isLocked(!platform.plan.manageProjectsEnabled),
+    //   isSubItem: false,
+    // },
     {
       type: 'link',
       to: '/platform/users',

@@ -9,12 +9,10 @@ import {
 import { PageTitle } from '@/app/components/page-title';
 import { ChatPage } from '@/app/routes/chat';
 import { EmbedPage } from '@/app/routes/embed';
-import AnalyticsPage from '@/app/routes/platform/analytics';
 import { ApiKeysPage } from '@/app/routes/platform/security/api-keys';
 import { SigningKeysPage } from '@/app/routes/platform/security/signing-keys';
 import { SSOPage } from '@/app/routes/platform/security/sso';
 import AIProvidersPage from '@/app/routes/platform/setup/ai';
-import { BrandingPage } from '@/app/routes/platform/setup/branding';
 import { PlatformPiecesPage } from '@/app/routes/platform/setup/pieces';
 import { RedirectPage } from '@/app/routes/redirect';
 import { ProjectPiecesPage } from '@/app/routes/settings/pieces';
@@ -439,19 +437,6 @@ const routes = [
     ),
   },
   {
-    path: '/platform/analytics',
-    element: (
-      <PlatformAdminContainer>
-        <PageTitle title="Analytics">
-          <div className="flex flex-col gap-4 w-full">
-            <PlatformMessages />
-            <AnalyticsPage />
-          </div>
-        </PageTitle>
-      </PlatformAdminContainer>
-    ),
-  },
-  {
     path: '/platform',
     element: (
       <PlatformAdminContainer>
@@ -477,16 +462,6 @@ const routes = [
       <PlatformAdminContainer>
         <PageTitle title="Templates">
           <TemplatesPage />
-        </PageTitle>
-      </PlatformAdminContainer>
-    ),
-  },
-  {
-    path: '/platform/setup/branding',
-    element: (
-      <PlatformAdminContainer>
-        <PageTitle title="Branding">
-          <BrandingPage />
         </PageTitle>
       </PlatformAdminContainer>
     ),

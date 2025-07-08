@@ -72,14 +72,14 @@ const CopilotSetup = () => {
             <Bot className="size-8" />
           </div>
           <div className="flex flex-grow flex-col">
-            <div className="text-lg">{t('Activepieces Copilot')}</div>
+            <div className="text-lg">{t('Nexus Copilot')}</div>
             <div className="text-sm text-muted-foreground">
               {configuredProvider
                 ? t(
                     'Copilot is configured and ready to help your users build flows faster using AI.',
                   )
                 : t(
-                    'Configure Activepieces Copilot to help your users build flows faster using AI.',
+                    'Configure Nexus Copilot to help your users build flows faster using AI.',
                   )}
             </div>
           </div>

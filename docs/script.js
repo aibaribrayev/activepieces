@@ -34,7 +34,7 @@ inkeepScript.addEventListener("load", function () {
       primaryBrandColor: "#8143E3",
     },
     aiChatSettings: {
-      chatSubjectName: "Activepieces",
+      chatSubjectName: "Nexus AI",
       botAvatarSrcUrl:
         "https://storage.googleapis.com/organization-image-assets/activepieces-botAvatarSrcUrl-1709136841325.svg",
       botAvatarDarkSrcUrl:
