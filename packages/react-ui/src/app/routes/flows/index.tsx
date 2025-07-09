@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { t } from 'i18next';
 import {
   ChevronDown,
@@ -7,6 +7,7 @@ import {
   Plus,
   Upload,
   Workflow,
+  Sparkles,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -22,9 +23,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { INTERNAL_ERROR_TOAST, toast } from '@/components/ui/use-toast';
+import { appConnectionsApi } from '@/features/connections/lib/api/app-connections';
 import { RunsTable } from '@/features/flow-runs/components/runs-table';
 import { ImportFlowDialog } from '@/features/flows/components/import-flow-dialog';
 import { SelectFlowTemplateDialog } from '@/features/flows/components/select-flow-template-dialog';
+import { BuildWithInventDialog } from '@/features/flows/components/build-with-invent-dialog';
 import { flowsApi } from '@/features/flows/lib/flows-api';
 import { folderIdParamName } from '@/features/folders/component/folder-filter-list';
 import { foldersApi } from '@/features/folders/lib/folders-api';
@@ -32,7 +35,7 @@ import { issueHooks } from '@/features/issues/hooks/issue-hooks';
 import { useAuthorization } from '@/hooks/authorization-hooks';
 import { authenticationSession } from '@/lib/authentication-session';
 import { NEW_FLOW_QUERY_PARAM } from '@/lib/utils';
-import { Permission, PopulatedFlow } from '@activepieces/shared';
+import { FlowStatus, Permission, PopulatedFlow } from '@activepieces/shared';
 
 import { TableTitle } from '../../../components/custom/table-title';
 
@@ -48,6 +51,8 @@ export enum FlowsPageTabs {
 
 const FlowsPage = () => {
   const { checkAccess } = useAuthorization();
+  const [searchParams] = useSearchParams();
+  const projectId = authenticationSession.getProjectId()!;
   const { data: showIssuesNotification } = issueHooks.useIssuesNotification();
   const location = useLocation();
   const navigate = useNavigate();
@@ -69,6 +74,42 @@ const FlowsPage = () => {
   useEffect(() => {
     setActiveTab(determineActiveTab());
   }, [location.pathname]);
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['flow-table', searchParams.toString(), projectId],
+    staleTime: 0,
+    queryFn: () => {
+      const name = searchParams.get('name');
+      const status = searchParams.getAll('status') as FlowStatus[];
+      const cursor = searchParams.get('cursor');
+      const limit = searchParams.get('limit')
+        ? parseInt(searchParams.get('limit')!)
+        : 10;
+      const folderId = searchParams.get('folderId') ?? undefined;
+      const connectionExternalId =
+        searchParams.getAll('connectionExternalId') ?? undefined;
+
+      return flowsApi.list({
+        projectId,
+        cursor: cursor ?? undefined,
+        limit,
+        name: name ?? undefined,
+        status,
+        folderId,
+        connectionExternalIds: connectionExternalId,
+      });
+    },
+  });
+
+  const { data: connections, isLoading: isLoadingConnections } = useQuery({
+    queryKey: ['connections', projectId],
+    queryFn: () => {
+      return appConnectionsApi.list({
+        projectId,
+        limit: 10000,
+      });
+    },
+  });
 
   const { embedState } = useEmbedding();
 
@@ -99,7 +140,9 @@ const FlowsPage = () => {
           >
             {t('Flows')}
           </TableTitle>
-          {activeTab === FlowsPageTabs.FLOWS && <CreateFlowDropdown />}
+          {activeTab === FlowsPageTabs.FLOWS && (
+            <CreateFlowDropdown refetch={refetch} />
+          )}
         </div>
         <Tabs
           value={activeTab}
@@ -118,7 +161,7 @@ const FlowsPage = () => {
                   {t('Runs')}
                 </TabsTrigger>
               )}
-              {checkAccess(Permission.READ_ISSUES) && (
+              {/* {checkAccess(Permission.READ_ISSUES) && (
                 <TabsTrigger value={FlowsPageTabs.ISSUES} variant="outline">
                   <CircleAlert className="h-4 w-4 mr-2" />
                   <span className="flex items-center gap-2">
@@ -128,7 +171,7 @@ const FlowsPage = () => {
                     )}
                   </span>
                 </TabsTrigger>
-              )}
+              )} */}
             </TabsList>
           ) : (
             <></>
@@ -151,7 +194,7 @@ const FlowsPage = () => {
 export { FlowsPage };
 
 type CreateFlowDropdownProps = {
-  refetch?: () => void;
+  refetch: () => void;
 };
 
 const CreateFlowDropdown = ({ refetch }: CreateFlowDropdownProps) => {
@@ -161,6 +204,7 @@ const CreateFlowDropdown = ({ refetch }: CreateFlowDropdownProps) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { embedState } = useEmbedding();
+  
   const { mutate: createFlow, isPending: isCreateFlowPending } = useMutation<
     PopulatedFlow,
     Error,
@@ -185,62 +229,45 @@ const CreateFlowDropdown = ({ refetch }: CreateFlowDropdownProps) => {
     onError: () => toast(INTERNAL_ERROR_TOAST),
   });
 
+  const handleInventSuccess = (flow: PopulatedFlow) => {
+    navigate(`/flows/${flow.id}?${NEW_FLOW_QUERY_PARAM}=true`);
+    refetch();
+  };
+
+  const getCurrentFolder = () => {
+    const folderId = searchParams.get(folderIdParamName);
+    return folderId && folderId !== 'NULL' ? folderId : undefined;
+  };
+
+  const getFolderName = async () => {
+    const folderId = getCurrentFolder();
+    if (folderId) {
+      try {
+        const folder = await foldersApi.get(folderId);
+        return folder?.displayName;
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
+  };
+
   return (
     <PermissionNeededTooltip hasPermission={doesUserHavePermissionToWriteFlow}>
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger
+      <BuildWithInventDialog
+        onSuccess={handleInventSuccess}
+        folderId={getCurrentFolder()}
+        folderName={getFolderName}
+      >
+        <Button
           disabled={!doesUserHavePermissionToWriteFlow}
-          asChild
+          variant="default"
+          size="sm"
+          className="bg-blue-900 hover:bg-blue-800 text-white"
         >
-          <Button
-            disabled={!doesUserHavePermissionToWriteFlow}
-            variant="default"
-            loading={isCreateFlowPending}
-          >
-            <span>{t('Create flow')}</span>
-            <ChevronDown className="h-4 w-4 ml-2 " />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
-              createFlow();
-            }}
-            disabled={isCreateFlowPending}
-          >
-            <Plus className="h-4 w-4 me-2" />
-            <span>{t('From scratch')}</span>
-          </DropdownMenuItem>
-          <SelectFlowTemplateDialog>
-            <DropdownMenuItem
-              onSelect={(e) => e.preventDefault()}
-              disabled={isCreateFlowPending}
-            >
-              <Workflow className="h-4 w-4 me-2" />
-              <span>{t('Use a template')}</span>
-            </DropdownMenuItem>
-          </SelectFlowTemplateDialog>
-
-          {!embedState.hideExportAndImportFlow && (
-            <ImportFlowDialog
-              insideBuilder={false}
-              onRefresh={() => {
-                setRefresh(refresh + 1);
-                if (refetch) refetch();
-              }}
-            >
-              <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-                disabled={!doesUserHavePermissionToWriteFlow}
-              >
-                <Upload className="h-4 w-4 me-2" />
-                {t('From local file')}
-              </DropdownMenuItem>
-            </ImportFlowDialog>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <span>{t('Create flow')}</span>
+        </Button>
+      </BuildWithInventDialog>
     </PermissionNeededTooltip>
   );
 };
