@@ -186,20 +186,6 @@ const PlatformPiecesPage = () => {
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4">
       <div className="mx-auto w-full flex-col">
-        {!isEnabled && (
-          <LockedAlert
-            title={t('Control Pieces')}
-            description={t(
-              "Show the pieces that matter most to your users and hide the ones you don't like.",
-            )}
-            button={
-              <RequestTrial
-                featureKey="ENTERPRISE_PIECES"
-                buttonVariant="outline-primary"
-              />
-            }
-          />
-        )}
         <div className="mb-4 flex">
           <TableTitle
             description={t(

@@ -105,18 +105,6 @@ export function LanguageSwitcher() {
           </Command>
         </PopoverContent>
       </Popover>
-      {showCommunity && (
-        <div>
-          <Link
-            className=" text-primary text-sm text-muted-foreground"
-            rel="noopener noreferrer"
-            target="_blank"
-            to="https://www.activepieces.com/docs/about/i18n"
-          >
-            {t('Translate Activepieces')}
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

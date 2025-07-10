@@ -45,21 +45,6 @@ const ProjectSettingsDropdownMenu = () => {
 
   const linkItems: ProjectSettingsLinkItem[] = [
     {
-      title: t('General'),
-      href: authenticationSession.appendProjectRoutePrefix('/settings/general'),
-      icon: <Settings className="w-4 h-4" />,
-      onClick: () => {
-        setEditDialogOpen(true);
-      },
-    },
-
-    {
-      title: t('Team'),
-      href: authenticationSession.appendProjectRoutePrefix('/settings/team'),
-      icon: <Users className="h-4 w-4" />,
-      hasPermission: checkAccess(Permission.READ_PROJECT_MEMBER),
-    },
-    {
       title: t('Pieces'),
       href: authenticationSession.appendProjectRoutePrefix('/settings/pieces'),
       icon: <Puzzle className="h-4 w-4" />,
@@ -69,14 +54,6 @@ const ProjectSettingsDropdownMenu = () => {
       href: authenticationSession.appendProjectRoutePrefix('/settings/alerts'),
       icon: <Bell className="h-4 w-4" />,
       hasPermission: checkAccess(Permission.READ_ALERT),
-    },
-    {
-      title: t('Environments'),
-      href: authenticationSession.appendProjectRoutePrefix(
-        '/settings/environments',
-      ),
-      icon: <GitBranch className="w-4 h-4" />,
-      hasPermission: checkAccess(Permission.READ_PROJECT_RELEASE),
     },
   ];
 
