@@ -236,9 +236,6 @@ export function SidebarComponent({
                 <SidebarMenu>
                   <SidebarInviteUserButton />
                 </SidebarMenu>
-                <SidebarMenu>
-                  <HelpAndFeedback />
-                </SidebarMenu>
                 {showProjectUsage && (
                   <SidebarMenu>
                     <UsageLimitsButton />

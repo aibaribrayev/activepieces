@@ -310,9 +310,6 @@ const SignUpForm = ({
                       onCheckedChange={field.onChange}
                     ></Checkbox>
                   </FormControl>
-                  <Label htmlFor="newsLetter">
-                    {t(`Receive updates and newsletters from lumeno`)}
-                  </Label>
                   <FormMessage />
                 </FormItem>
               )}
