@@ -110,15 +110,6 @@ const PlatformPiecesPage = () => {
           },
         },
         {
-          accessorKey: 'packageName',
-          header: ({ column }) => (
-            <DataTableColumnHeader column={column} title={t('Package Name')} />
-          ),
-          cell: ({ row }) => {
-            return <div className="text-left">{row.original.name}</div>;
-          },
-        },
-        {
           accessorKey: 'version',
           header: ({ column }) => (
             <DataTableColumnHeader column={column} title={t('Version')} />
