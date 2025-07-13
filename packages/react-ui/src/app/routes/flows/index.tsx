@@ -263,7 +263,7 @@ const CreateFlowDropdown = ({ refetch }: CreateFlowDropdownProps) => {
           disabled={!doesUserHavePermissionToWriteFlow}
           variant="default"
           size="sm"
-          className="bg-blue-900 hover:bg-blue-800 text-white"
+          className="bg-black hover:bg-gray-800 text-white"
         >
           <span>{t('Create flow')}</span>
         </Button>

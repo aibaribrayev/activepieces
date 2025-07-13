@@ -171,7 +171,7 @@ export const BuildWithInventDialog: React.FC<BuildWithInventDialogProps> = ({
               <Button
                 onClick={handleStart}
                 disabled={!prompt.trim() || isBuilding}
-                className="absolute bottom-3 right-3 bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 h-auto"
+                className="absolute bottom-3 right-3 bg-black hover:bg-gray-800 text-white px-4 py-2 h-auto"
                 size="sm"
               >
                 {isBuilding ? (
@@ -228,7 +228,7 @@ export const BuildWithInventDialog: React.FC<BuildWithInventDialogProps> = ({
                   onClick={() => createFromScratch()}
                 >
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mt-1">
-                    <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded" />
+                    <div className="w-4 h-4 bg-black rounded" />
                   </div>
                   <div>
                     <h4 className="font-medium text-sm">{t('Build from scratch')}</h4>
