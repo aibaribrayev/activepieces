@@ -17,8 +17,7 @@ import { flowsApi } from '@/features/flows/lib/flows-api';
 import { SelectFlowTemplateDialog } from '@/features/flows/components/select-flow-template-dialog';
 import { ImportFlowDialog } from '@/features/flows/components/import-flow-dialog';
 import { authenticationSession } from '@/lib/authentication-session';
-import { FlowStatus, FlowVersionState, PopulatedFlow, TriggerType } from '@activepieces/shared';
-
+import { PopulatedFlow } from '@activepieces/shared';
 
 interface BuildWithInventDialogProps {
   children: ReactNode;
@@ -27,46 +26,35 @@ interface BuildWithInventDialogProps {
   folderName?: () => Promise<string | undefined>;
 }
 
-// Mock API call for Build with Invent
-const mockInventApi = {
-  generateFlow: async (prompt: string, projectId: string, folderName?: string): Promise<PopulatedFlow> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock flow data that would be returned from the API
-    const mockFlow: PopulatedFlow = {
-      id: `flow_${Date.now()}`,
-      projectId,
-      externalId: `ext_${Date.now()}`,
-      folderId: null,
-      status: FlowStatus.ENABLED as const,
-      schedule: null,
-      handshakeConfiguration: null,
-      publishedVersionId: null,
-      metadata: null,
-      created: new Date().toISOString(),
-      updated: new Date().toISOString(),
-      version: {
-        id: `version_${Date.now()}`,
-        flowId: `flow_${Date.now()}`,
-        displayName: `AI Generated: ${prompt.substring(0, 50)}...`,
-        trigger: {
-            type: TriggerType.EMPTY,
-            name: "kek",
-            valid: true,
-            displayName: "kek",
-            nextAction: null,
-            settings: {},
-        },
-        state: FlowVersionState.DRAFT as const,
-        created: new Date().toISOString(),
-        updated: new Date().toISOString(),
-        valid: true,
-        connectionIds: [],
+// Real API call for Build with Invent
+const inventApi = {
+  generateFlow: async (prompt: string, projectId: string): Promise<any> => {
+    const apiBaseUrl = process.env.COP_URL || 'http://localhost:3300'
+    const response = await fetch('${apiBaseUrl}/api/v1/copilot/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    };
+      body: JSON.stringify({
+        prompt: prompt,
+        projectId: projectId,
+        userId: "user123",
+        autoSave: false,
+        autoEnable: false,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
     
-    return mockFlow;
+    if (!data.success) {
+      throw new Error('Flow generation failed');
+    }
+
+    return data.flow;
   },
 };
 
@@ -78,8 +66,6 @@ export const BuildWithInventDialog: React.FC<BuildWithInventDialogProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
 
   const { mutate: buildWithInvent, isPending: isBuilding } = useMutation<
     PopulatedFlow,
@@ -90,20 +76,27 @@ export const BuildWithInventDialog: React.FC<BuildWithInventDialogProps> = ({
       const projectId = authenticationSession.getProjectId()!;
       const folder = await folderName?.();
       
-      // Call the mock API (replace with actual API call)
-      const generatedFlow = await mockInventApi.generateFlow(prompt, projectId, folder);
+      // Call the real API to generate the flow
+      const generatedFlowData = await inventApi.generateFlow(prompt, projectId);
       
-      // Create the flow using the existing API
+      // Create the flow using the existing API with the generated name
       const createdFlow = await flowsApi.create({
         projectId,
-        displayName: generatedFlow.version.displayName,
+        displayName: generatedFlowData.name || generatedFlowData.template.displayName || `AI Generated: ${prompt.substring(0, 50)}...`,
         folderName: folder,
       });
       
-      // In a real implementation, you would also update the flow with the AI-generated definition
-      // await flowsApi.update(createdFlow.id, { definition: generatedFlow.version.definition });
+      // Update the flow with the AI-generated template
+      const updatedFlow = await flowsApi.update(createdFlow.id, {
+        type: 'IMPORT_FLOW' as any, // FlowOperationType.IMPORT_FLOW
+        request: {
+          displayName: generatedFlowData.name || generatedFlowData.template.displayName,
+          trigger: generatedFlowData.template.trigger,
+          schemaVersion: generatedFlowData.template.schemaVersion,
+        },
+      });
       
-      return createdFlow;
+      return updatedFlow;
     },
     onSuccess: (flow) => {
       onSuccess(flow);
@@ -114,10 +107,16 @@ export const BuildWithInventDialog: React.FC<BuildWithInventDialogProps> = ({
         description: t('Your AI-generated flow has been created successfully.'),
       });
     },
-    onError: () => {
-      toast(INTERNAL_ERROR_TOAST);
+    onError: (error) => {
+      console.error('Build with Invent error:', error);
+      toast({
+        title: t('Error'),
+        description: t('Failed to generate flow. Please try again.'),
+        variant: 'destructive',
+      });
     },
   });
+
   const { mutate: createFromScratch, isPending: isCreatingFromScratch } = useMutation<
     PopulatedFlow,
     Error,
@@ -145,17 +144,6 @@ export const BuildWithInventDialog: React.FC<BuildWithInventDialogProps> = ({
       buildWithInvent(prompt);
     }
   };
-
-  const handleImportSuccess = () => {
-    setIsOpen(false);
-    setIsImportDialogOpen(false);
-  };
-
-  const handleTemplateSuccess = () => {
-    setIsOpen(false);
-    setIsTemplateDialogOpen(false);
-  };
-
 
   return (
     <>
