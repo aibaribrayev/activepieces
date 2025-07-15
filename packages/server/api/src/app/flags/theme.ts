@@ -65,7 +65,7 @@ export function generateTheme({
 
 export const defaultTheme = generateTheme({
     primaryColor: '#000c26',
-    websiteName: 'Activepieces',
+    websiteName: 'Nexus',
     fullLogoUrl: 'favicon.svg',
     favIconUrl: 'favicon.ico',
     logoIconUrl: 'favicon.svg',

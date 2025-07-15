@@ -108,7 +108,7 @@ export const CustomTooltipLink = ({
                 : null}
               <span className="text-sm">{label}</span>
             </div>
-            {label === 'Agents' && <BetaBadge showTooltip={false} />}
+            {label === 'Agents'}
           </div>
           {locked && (
             <LockKeyhole className="size-4 stroke-[2px]" color="grey" />
